@@ -31,7 +31,6 @@ vaccine_sites = {'Phoenix Municipal Stadium': 'https://www.handsonphoenix.org/op
 def send_twilio_message(body):
     twilioCli = Client(account_sid, auth_token)
     message = twilioCli.messages.create(body=body, from_=source_number, to=target_number)
-    logging.debug(message.sid)
 
 # send a message via slack
 def send_slack_message(slack_url, message):
