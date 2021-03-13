@@ -1,0 +1,6 @@
+requests~=2.25.1
+bs4~=0.0.1
+beautifulsoup4~=4.9.3
+lxml~=4.6.2
+slack_webhook~=1.0.5
+twilio~=6.53.0
