@@ -1,0 +1,6 @@
+docs
+Procfile
+README.md
+docker-compose.yml
+.env.sample.env
+.gitignore
