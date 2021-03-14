@@ -1,0 +1,38 @@
+version: '3.7'
+services:
+  tor-privoxy:
+    container_name: tor-privoxy
+    image: dockage/tor-privoxy:latest
+    ports:                        # by using "127.0.0.1:<external_port>:<internal_port>", we restrict access to this Docker container to this system only
+      - "127.0.0.1:9060:9050"     # Tor proxy
+      - "127.0.0.1:9061:9051"     # Tor control port (not needed for this project)
+      - "127.0.0.1:8118:8118"     # Privoxy - a proxy with built-in ad-blocking lists
+    restart: unless-stopped
+    logging:                      # keeps logging to a max of ~2mb
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+  covid-vaccine-bot:
+    container_name: covid-vaccine-bot
+    # network_mode: service:tor-privoxy                   # this will not work! you have to use the proxy
+    image: covid-vaccine-bot:latest
+    environment:                                      # reads from the .env file located in this directory
+      - HTTP_PROXY=http://tor-privoxy:8118            # the name of the tor-privoxy service resolves, thanks to docker's DNS
+      - HTTPS_PROXY=http://tor-privoxy:8118           # the name of the tor-privoxy service resolves, thanks to docker's DNS
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}        # the .env file is automatically read by docker compose
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}      # the .env file is automatically read by docker compose
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}        # the .env file is automatically read by docker compose
+      - TWILIO_TARGET_NUMBER=${TWILIO_TARGET_NUMBER}  # the .env file is automatically read by docker compose
+      - TWILIO_SOURCE_NUMBER=${TWILIO_SOURCE_NUMBER}  # the .env file is automatically read by docker compose
+    volumes:
+      - ./covid-vaccine-bot.py:/src/covid-vaccine-bot.py  # allows you to restart the container instead of rebuilding the image when changing the source code
+    tty: true                 # if tty is not set to true, python logs will not show up in real time
+    depends_on:
+      - tor-privoxy           # wait for the tor-privoxy service to start
+    restart: unless-stopped
+    logging:                  # keeps logging to a max of ~2mb
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
